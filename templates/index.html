@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FF Tool Web Panel</title>
+    <style>
+        body { background-color: #000; color: #0f0; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .console { border: 2px solid #0f0; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 0 15px #0f0; background: #111; }
+        h2 { text-align: center; margin-top: 0; text-shadow: 0 0 5px #0f0; }
+        label { display: block; margin-top: 10px; }
+        input { width: 100%; padding: 8px; margin-top: 5px; background: #222; border: 1px solid #0f0; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; margin-top: 20px; background: #0f0; color: black; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
+        button:hover { background: #00cc00; }
+        #response { margin-top: 15px; text-align: center; font-weight: bold; min-height: 20px; }
+    </style>
+</head>
+<body>
+    <div class="console">
+        <h2>FF PYTHON TOOL</h2>
+        <form id="toolForm">
+            <label>Target UID:</label>
+            <input type="text" name="uid" placeholder="Enter UID Here" required>
+            <label>Password:</label>
+            <input type="text" name="password" placeholder="Enter Password" required>
+            <label>Time (Seconds):</label>
+            <input type="number" name="time" placeholder="e.g. 60" required>
+            <button type="submit">START ATTACK</button>
+        </form>
+        <div id="response">Waiting for command...</div>
+    </div>
+    <script>
+        document.getElementById('toolForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const resDiv = document.getElementById('response');
+            resDiv.innerHTML = "Sending Command...";
+            resDiv.style.color = "yellow";
+            const formData = new FormData(this);
+            fetch('/run', { method: 'POST', body: formData })
+            .then(response => response.json())
+            .then(data => {
+                resDiv.innerHTML = data.message;
+                if(data.status === "success") { resDiv.style.color = "#0f0"; } else { resDiv.style.color = "red"; }
+            })
+            .catch(error => { resDiv.innerHTML = "Server Error!"; resDiv.style.color = "red"; });
+        });
+    </script>
+</body>
+</html>
