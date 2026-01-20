@@ -3,47 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FF Tool Web Panel</title>
+    <title>⚡ FF GLORY TOOLS ⚡</title>
     <style>
-        body { background-color: #000; color: #0f0; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .console { border: 2px solid #0f0; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 0 15px #0f0; background: #111; }
-        h2 { text-align: center; margin-top: 0; text-shadow: 0 0 5px #0f0; }
-        label { display: block; margin-top: 10px; }
-        input { width: 100%; padding: 8px; margin-top: 5px; background: #222; border: 1px solid #0f0; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; margin-top: 20px; background: #0f0; color: black; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
-        button:hover { background: #00cc00; }
-        #response { margin-top: 15px; text-align: center; font-weight: bold; min-height: 20px; }
+        body { background-color: #050505; color: #00ff41; font-family: 'Courier New', monospace; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .panel { width: 100%; max-width: 500px; border: 2px solid #00ff41; padding: 25px; background: #000; box-shadow: 0 0 20px rgba(0, 255, 65, 0.3); border-radius: 5px; }
+        h1 { text-align: center; margin: 0 0 20px 0; border-bottom: 1px dashed #00ff41; padding-bottom: 10px; letter-spacing: 2px; text-transform: uppercase; }
+        
+        .input-group { margin-bottom: 15px; position: relative; }
+        label { display: block; font-size: 14px; margin-bottom: 5px; opacity: 0.8; }
+        input, select { width: 100%; background: #111; border: 1px solid #333; color: #00ff41; padding: 10px; box-sizing: border-box; font-family: inherit; font-size: 16px; outline: none; }
+        input:focus { border-color: #00ff41; box-shadow: 0 0 5px rgba(0,255,65,0.5); }
+        
+        /* Show/Hide Button */
+        .show-btn { position: absolute; right: 10px; top: 32px; cursor: pointer; font-size: 12px; background: #222; padding: 2px 5px; border: 1px solid #00ff41; }
+
+        /* Preset Buttons */
+        .presets { display: flex; gap: 10px; margin-bottom: 10px; }
+        .preset-btn { flex: 1; background: #001a00; border: 1px solid #005500; color: #00aa22; padding: 5px; cursor: pointer; font-size: 12px; text-align: center; }
+        .preset-btn:hover { background: #003300; color: #00ff41; border-color: #00ff41; }
+
+        /* Custom Time Row */
+        .time-row { display: flex; gap: 10px; }
+        .time-row input { flex: 2; }
+        .time-row select { flex: 1; }
+
+        /* Action Buttons */
+        .actions { display: flex; gap: 15px; margin-top: 25px; }
+        button.main-btn { flex: 1; padding: 15px; font-weight: bold; font-size: 18px; cursor: pointer; border: none; text-transform: uppercase; }
+        .run-btn { background: #00ff41; color: black; box-shadow: 0 0 10px #00ff41; }
+        .run-btn:hover { background: #00cc33; }
+        .off-btn { background: #ff0000; color: white; border: 1px solid #ff0000; opacity: 0.6; pointer-events: none; }
+        .off-btn.active { opacity: 1; pointer-events: all; box-shadow: 0 0 15px red; cursor: pointer; }
+
+        /* Status Area */
+        .status-box { margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; font-size: 14px; }
+        .status-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .val { font-weight: bold; color: white; }
+        .blink { animation: blinker 1s linear infinite; color: #ff0000; display: none; }
+        @keyframes blinker { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
-    <div class="console">
-        <h2>FF PYTHON TOOL</h2>
-        <form id="toolForm">
-            <label>Target UID:</label>
-            <input type="text" name="uid" placeholder="Enter UID Here" required>
-            <label>Password:</label>
-            <input type="text" name="password" placeholder="Enter Password" required>
-            <label>Time (Seconds):</label>
-            <input type="number" name="time" placeholder="e.g. 60" required>
-            <button type="submit">START ATTACK</button>
-        </form>
-        <div id="response">Waiting for command...</div>
+
+    <div class="panel">
+        <h1>⚡ FF CONTROL CENTER ⚡</h1>
+
+        <div class="input-group">
+            <label>TARGET UID</label>
+            <input type="text" id="uid" placeholder="123456789">
+        </div>
+
+        <div class="input-group">
+            <label>PASSWORD</label>
+            <input type="password" id="password" placeholder="Enter Password">
+            <span class="show-btn" onclick="togglePass()">SHOW</span>
+        </div>
+
+        <label>DURATION PRESETS</label>
+        <div class="presets">
+            <div class="preset-btn" onclick="setPreset(1, 'days')">1 DAY</div>
+            <div class="preset-btn" onclick="setPreset(2, 'days')">2 DAYS</div>
+            <div class="preset-btn" onclick="setPreset(3, 'days')">3 DAYS</div>
+        </div>
+
+        <div class="input-group">
+            <label>CUSTOM TIME</label>
+            <div class="time-row">
+                <input type="number" id="timeVal" placeholder="Time">
+                <select id="timeUnit">
+                    <option value="min">Minutes</option>
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                    <option value="permanent">PERMANENT</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="main-btn run-btn" onclick="startBot()">RUN BOT</button>
+            <button class="main-btn off-btn" id="stopBtn" onclick="stopBot()">OFF BOT</button>
+        </div>
+
+        <div class="status-box">
+            <div class="status-row">STATUS: <span id="statusText" class="val">IDLE</span> <span class="blink" id="liveInd">● LIVE</span></div>
+            <div class="status-row">TIME LEFT: <span id="timeLeft" class="val">--</span></div>
+            <div class="status-row">TIME ELAPSED: <span id="timeElapsed" class="val">0s</span></div>
+        </div>
     </div>
+
     <script>
-        document.getElementById('toolForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const resDiv = document.getElementById('response');
-            resDiv.innerHTML = "Sending Command...";
-            resDiv.style.color = "yellow";
-            const formData = new FormData(this);
+        let interval;
+        let elapsedInterval;
+        let totalSeconds = 0;
+        let elapsed = 0;
+
+        function togglePass() {
+            const p = document.getElementById('password');
+            const btn = document.querySelector('.show-btn');
+            if (p.type === "password") { p.type = "text"; btn.innerText = "HIDE"; }
+            else { p.type = "password"; btn.innerText = "SHOW"; }
+        }
+
+        function setPreset(val, unit) {
+            document.getElementById('timeVal').value = val;
+            document.getElementById('timeUnit').value = unit;
+        }
+
+        function startBot() {
+            const uid = document.getElementById('uid').value;
+            const password = document.getElementById('password').value;
+            const timeVal = document.getElementById('timeVal').value;
+            const timeUnit = document.getElementById('timeUnit').value;
+
+            if(!uid || !password || !timeVal) { alert("Please fill all details!"); return; }
+
+            const formData = new FormData();
+            formData.append('uid', uid);
+            formData.append('password', password);
+            formData.append('time', timeVal);
+            formData.append('unit', timeUnit);
+
             fetch('/run', { method: 'POST', body: formData })
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
-                resDiv.innerHTML = data.message;
-                if(data.status === "success") { resDiv.style.color = "#0f0"; } else { resDiv.style.color = "red"; }
-            })
-            .catch(error => { resDiv.innerHTML = "Server Error!"; resDiv.style.color = "red"; });
-        });
+                if(data.status === 'success') {
+                    // Update UI
+                    document.getElementById('statusText').innerText = "RUNNING...";
+                    document.getElementById('statusText').style.color = "#00ff41";
+                    document.getElementById('liveInd').style.display = "inline";
+                    document.getElementById('stopBtn').classList.add('active');
+                    
+                    totalSeconds = data.total_seconds;
+                    elapsed = 0;
+                    startTimer();
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+
+        function stopBot() {
+            fetch('/stop', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                resetUI();
+            });
+        }
+
+        function startTimer() {
+            clearInterval(interval);
+            clearInterval(elapsedInterval);
+
+            interval = setInterval(() => {
+                totalSeconds--;
+                if(totalSeconds <= 0) {
+                    resetUI();
+                    alert("Time Finished!");
+                } else {
+                    document.getElementById('timeLeft').innerText = formatTime(totalSeconds);
+                }
+            }, 1000);
+
+            elapsedInterval = setInterval(() => {
+                elapsed++;
+                document.getElementById('timeElapsed').innerText = formatTime(elapsed);
+            }, 1000);
+        }
+
+        function resetUI() {
+            clearInterval(interval);
+            clearInterval(elapsedInterval);
+            document.getElementById('statusText').innerText = "STOPPED";
+            document.getElementById('statusText').style.color = "white";
+            document.getElementById('liveInd').style.display = "none";
+            document.getElementById('stopBtn').classList.remove('active');
+            document.getElementById('timeLeft').innerText = "--";
+        }
+
+        function formatTime(sec) {
+            if(sec > 86400) return (sec/86400).toFixed(1) + " Days";
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = sec % 60;
+            return `${h}h ${m}m ${s}s`;
+        }
     </script>
 </body>
 </html>
