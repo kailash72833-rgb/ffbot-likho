@@ -1,31 +1,57 @@
 from flask import Flask, render_template, request, jsonify
 import threading
 import time
+import sys
+import traceback
 
 app = Flask(__name__)
 
 # Data Storage
 RUNNING_BOTS = {}
 
-# Bot Logic Placeholder
+# --- BOT LOGIC IMPORT (CRITICAL) ---
+# Yahan hum check kar rahe hain ki bot_logic.py sahi se load ho raha hai ya nahi
 try:
     from bot_logic import FF_CLIENT
-except Exception:
-    pass 
+    print("[SYSTEM] Bot Logic Loaded Successfully!")
+except Exception as e:
+    print(f"[ERROR] bot_logic.py load nahi hua! Error: {e}")
+    # Hum fake function bana dete hain taaki server crash na ho, par error dikhe
+    def FF_CLIENT(u, p):
+        print(f"[FAKE BOT] Connection Failed. Logic missing for {u}")
+        raise Exception("Bot Logic File Missing or Corrupted")
 
 def background_worker(uid, password, duration_seconds):
     global RUNNING_BOTS
     try:
-        # FF_CLIENT(uid, password) # Asli bot logic yahan call hoga
+        print(f"[BOT START] Connecting UID: {uid}...")
+        
+        # --- ASLI CONNECTION START ---
+        # Ye line ab uncommented hai, matlab ab ye Garena se connect karega
+        FF_CLIENT(uid, password) 
+        # -----------------------------
+
+        print(f"[BOT SUCCESS] {uid} is now Online!")
+        
+        # Timer Loop (Bot ko zinda rakhne ke liye aur time count karne ke liye)
         start_time = time.time()
         while time.time() - start_time < duration_seconds:
-            if uid not in RUNNING_BOTS or RUNNING_BOTS[uid]['stop']: break
+            # Agar user ne STOP dabaya, to loop todo
+            if uid not in RUNNING_BOTS or RUNNING_BOTS[uid]['stop']: 
+                print(f"[BOT STOP] Stopping {uid}...")
+                break
+            
+            # Time Update
             RUNNING_BOTS[uid]['elapsed'] = int(time.time() - start_time)
             time.sleep(1)
+            
     except Exception as e:
-        print(f"Error {uid}: {e}")
+        print(f"[BOT ERROR] {uid} Error: {e}")
+        # Error detail console me dikhana
+        traceback.print_exc()
     finally:
         if uid in RUNNING_BOTS: del RUNNING_BOTS[uid]
+        print(f"[BOT END] {uid} Process Finished.")
 
 @app.route('/')
 def home():
@@ -39,8 +65,8 @@ def run_bot():
     raw_time = request.form.get('time')
     unit = request.form.get('unit')
 
-    if not uid or not password: return jsonify({"status": "error", "message": "Details missing!"})
-    if uid in RUNNING_BOTS: return jsonify({"status": "error", "message": "Already Running!"})
+    if not uid or not password: return jsonify({"status": "error", "message": "UID/Pass Missing!"})
+    if uid in RUNNING_BOTS: return jsonify({"status": "error", "message": "Bot already running!"})
 
     try:
         duration = int(raw_time)
@@ -51,30 +77,34 @@ def run_bot():
     except:
         return jsonify({"status": "error", "message": "Invalid Time!"})
 
+    # Bot ko list me add karo
     RUNNING_BOTS[uid] = {
         'name': name if name else uid,
         'uid': uid,
-        'password': password,
+        'password': password, # Password hum frontend pe wapas nahi bhejenge security ke liye
         'stop': False,
         'elapsed': 0,
         'total_time': duration
     }
 
+    # Thread start karo
     t = threading.Thread(target=background_worker, args=(uid, password, duration))
     t.daemon = True
     t.start()
-    return jsonify({"status": "success", "message": "Bot Started!"})
+    
+    return jsonify({"status": "success", "message": f"Command Sent to {uid}!"})
 
 @app.route('/stop', methods=['POST'])
 def stop_bot():
     uid = request.form.get('uid')
     if uid in RUNNING_BOTS:
         RUNNING_BOTS[uid]['stop'] = True
-        return jsonify({"status": "success", "message": "Stopped"})
-    return jsonify({"status": "error", "message": "Not Found"})
+        return jsonify({"status": "success", "message": "Stop Command Sent"})
+    return jsonify({"status": "error", "message": "Bot not found"})
 
 @app.route('/active_bots')
 def get_active_bots():
+    # Frontend ko data bhejo
     return jsonify(RUNNING_BOTS)
 
 if __name__ == '__main__':
