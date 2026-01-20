@@ -4,95 +4,163 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EXE BOT DASHBOARD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #000; color: #0f0; font-family: 'Courier New', monospace; margin: 0; padding: 10px; }
+        :root {
+            --bg-dark: #0f1016; /* Dark background like photo */
+            --card-bg: #1d1e2c; /* Card color */
+            --accent: #6c5ce7; /* Purple accent */
+            --text-main: #ffffff;
+            --text-sec: #a0a0b0;
+            --green: #00b894;
+        }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-main); padding-bottom: 80px; }
         
-        /* Top Stats Bar */
-        .stats-bar { display: flex; justify-content: space-between; border-bottom: 2px solid #0f0; padding-bottom: 10px; margin-bottom: 20px; }
-        .stat-box { text-align: center; width: 48%; background: #051a05; padding: 10px; border: 1px solid #005500; }
-        .stat-label { font-size: 12px; color: #aaa; }
-        .stat-val { font-size: 20px; font-weight: bold; color: #00ff41; }
-        
-        h1 { text-align: center; margin: 10px 0; letter-spacing: 5px; border: 1px dashed #0f0; padding: 5px; }
+        /* HEADER SECTION */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: linear-gradient(180deg, rgba(29,30,44,1) 0%, rgba(15,16,22,0) 100%); }
+        .user-info h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px; }
+        .user-info p { margin: 2px 0 0; font-size: 12px; color: var(--text-sec); }
+        .badge { background: #fdcb6e; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 5px; }
+        .profile-icon { width: 40px; height: 40px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
 
-        /* Create Section */
-        .panel { border: 1px solid #0f0; padding: 15px; margin-bottom: 20px; background: #080808; }
-        .panel h3 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 5px; color: yellow; }
-        
-        .row { display: flex; gap: 10px; margin-bottom: 10px; }
-        input, select { width: 100%; background: #111; border: 1px solid #0f0; color: white; padding: 8px; }
-        button { width: 100%; background: #0f0; color: black; font-weight: bold; padding: 10px; border: none; cursor: pointer; }
-        button:hover { background: #00cc00; }
+        /* DASHBOARD GRID */
+        .grid { display: grid; grid-template-columns: 1fr; gap: 15px; padding: 20px; }
+        .card { background: var(--card-bg); border-radius: 15px; padding: 20px; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .card h3 { margin: 0 0 10px 0; font-size: 14px; color: var(--text-sec); }
+        .card .value { font-size: 24px; font-weight: bold; margin: 0; }
+        .icon-box { position: absolute; right: 20px; top: 20px; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .purple-icon { background: rgba(108, 92, 231, 0.2); color: var(--accent); }
+        .yellow-icon { background: rgba(253, 203, 110, 0.2); color: #fdcb6e; }
 
-        /* Active Bots List */
-        .bot-list { width: 100%; border-collapse: collapse; font-size: 12px; }
-        .bot-list th { text-align: left; border-bottom: 1px solid #0f0; padding: 5px; color: yellow; }
-        .bot-list td { border-bottom: 1px solid #333; padding: 5px; color: white; }
-        .bot-id { color: #00ff41; font-weight: bold; }
-        .pass-text { color: #aaa; font-family: sans-serif; }
-        
-        .stop-btn { background: red; color: white; padding: 2px 5px; font-size: 10px; width: auto; }
+        /* CREATE FORM */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-sec); margin-bottom: 5px; }
+        input, select { width: 100%; background: #151621; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--accent); }
+        .btn-main { width: 100%; background: var(--accent); color: white; padding: 15px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 10px; cursor: pointer; }
+
+        /* ACTIVE BOTS LIST */
+        .section-title { padding: 0 20px; font-size: 16px; font-weight: bold; display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+        .bot-item { background: var(--card-bg); margin: 10px 20px; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--green); }
+        .bot-info h4 { margin: 0; font-size: 14px; }
+        .bot-info p { margin: 3px 0 0; font-size: 11px; color: var(--text-sec); font-family: monospace; }
+        .stop-btn { background: #ff4757; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+
+        /* BOTTOM NAV */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #161722; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #2d3436; }
+        .nav-item { color: #636e72; text-align: center; font-size: 10px; cursor: pointer; }
+        .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
+        .nav-item.active { color: var(--accent); }
+
+        /* SECTIONS VISIBILITY */
+        .page-section { display: none; }
+        .page-section.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <h1>EXE BOT PANEL</h1>
-
-    <div class="stats-bar">
-        <div class="stat-box">
-            <div class="stat-label">ACCOUNT LIMIT</div>
-            <div class="stat-val">NO LIMIT</div>
+    <div class="header">
+        <div class="user-info">
+            <h2>EXE BOT</h2>
+            <p>admin@exebot <span class="badge">PREMIUM</span></p>
         </div>
-        <div class="stat-box">
-            <div class="stat-label">RUN BOT</div>
-            <div class="stat-val" id="runningCount">0 RUNNING</div>
+        <div class="profile-icon">E</div>
+    </div>
+
+    <div id="dashboard" class="page-section active">
+        <div class="grid">
+            <div class="card">
+                <h3>Active Bots</h3>
+                <p class="value" style="font-size: 20px;">NO LIMIT</p>
+                <div class="icon-box purple-icon"><i class="fas fa-robot"></i></div>
+            </div>
+            <div class="card">
+                <h3>Bot Status</h3>
+                <p class="value" id="runningCount">0 Running</p>
+                <div class="icon-box yellow-icon"><i class="fas fa-bolt"></i></div>
+                <div style="margin-top:5px; height:4px; background:#333; border-radius:2px;"><div style="width:20%; height:100%; background:#fdcb6e; border-radius:2px;"></div></div>
+            </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-circle" style="color:var(--green); font-size: 10px;"></i> Recent Active Bots</div>
+        <div id="dashboardList">
+            </div>
+    </div>
+
+    <div id="create" class="page-section">
+        <div style="padding: 20px;">
+            <h2 style="margin-bottom: 20px;">Launch New Bot</h2>
+            <div class="form-group">
+                <label>Bot Name</label>
+                <input type="text" id="botName" placeholder="e.g. Pro Player">
+            </div>
+            <div class="form-group">
+                <label>Target UID</label>
+                <input type="text" id="uid" placeholder="123456789">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="text" id="password" placeholder="Enter Password">
+            </div>
+            <div class="form-group">
+                <label>Duration</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="timeVal" value="1" style="flex:1;">
+                    <select id="timeUnit" style="flex:1;">
+                        <option value="permanent">NO LIMIT</option>
+                        <option value="days">Days</option>
+                        <option value="hours">Hours</option>
+                        <option value="min">Minutes</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn-main" onclick="startBot()">START BOT <i class="fas fa-rocket"></i></button>
         </div>
     </div>
 
-    <div class="panel">
-        <h3>+ CREATE NEW BOT</h3>
-        <div class="row">
-            <input type="text" id="name" placeholder="Bot Name (Optional)">
-            <input type="text" id="uid" placeholder="Target UID" required>
-        </div>
-        <div class="row">
-            <input type="text" id="password" placeholder="Password" required>
-        </div>
-        <div class="row">
-            <input type="number" id="timeVal" placeholder="Time" value="1">
-            <select id="timeUnit">
-                <option value="permanent">PERMANENT (NO LIMIT)</option>
-                <option value="days">Days</option>
-                <option value="hours">Hours</option>
-                <option value="min">Minutes</option>
-            </select>
-        </div>
-        <button onclick="startBot()">START ATTACK ⚡</button>
+    <div id="bots" class="page-section">
+        <div class="section-title" style="margin-top: 20px;">All Running Bots</div>
+        <div id="fullBotList" style="padding-bottom: 20px;"></div>
     </div>
 
-    <div class="panel">
-        <h3>> ACTIVE BOTS LIST</h3>
-        <table class="bot-list">
-            <thead>
-                <tr>
-                    <th>NAME</th>
-                    <th>UID / PASS</th>
-                    <th>STATUS</th>
-                    <th>ACTION</th>
-                </tr>
-            </thead>
-            <tbody id="botTable">
-                </tbody>
-        </table>
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('dashboard', this)">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </div>
+        <div class="nav-item" onclick="switchTab('bots', this)">
+            <i class="fas fa-robot"></i> Bots
+        </div>
+        <div class="nav-item" onclick="switchTab('create', this)">
+            <i class="fas fa-plus-circle" style="font-size: 24px; color: var(--accent);"></i> Create
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-user-shield"></i> Admin
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-user"></i> Profile
+        </div>
     </div>
 
     <script>
+        // Tab Switching Logic
+        function switchTab(tabId, elem) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            elem.classList.add('active');
+            
+            if(tabId === 'bots' || tabId === 'dashboard') fetchBots();
+        }
+
+        // Backend Communication
         function startBot() {
-            const btn = document.querySelector('button');
-            btn.innerText = "STARTING...";
+            const btn = document.querySelector('.btn-main');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
             
             const formData = new FormData();
-            formData.append('name', document.getElementById('name').value);
+            formData.append('name', document.getElementById('botName').value);
             formData.append('uid', document.getElementById('uid').value);
             formData.append('password', document.getElementById('password').value);
             formData.append('time', document.getElementById('timeVal').value);
@@ -102,8 +170,11 @@
             .then(res => res.json())
             .then(data => {
                 alert(data.message);
-                btn.innerText = "START ATTACK ⚡";
-                fetchBots(); // Refresh list immediately
+                btn.innerHTML = 'START BOT <i class="fas fa-rocket"></i>';
+                if(data.status === 'success') {
+                    // Switch to bots view automatically
+                    switchTab('bots', document.querySelectorAll('.nav-item')[1]);
+                }
             });
         }
 
@@ -113,36 +184,44 @@
             formData.append('uid', uid);
             fetch('/stop', { method: 'POST', body: formData })
             .then(res => res.json())
-            .then(data => fetchBots());
+            .then(() => fetchBots());
         }
 
         function fetchBots() {
             fetch('/active_bots')
             .then(res => res.json())
             .then(data => {
-                const tbody = document.getElementById('botTable');
-                tbody.innerHTML = "";
-                
                 const uids = Object.keys(data);
-                document.getElementById('runningCount').innerText = uids.length + " RUNNING";
+                document.getElementById('runningCount').innerText = uids.length + " Running";
                 
-                if (uids.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:10px; color:#555;'>No Active Bots</td></tr>";
-                    return;
-                }
-
+                let html = "";
+                if(uids.length === 0) html = "<p style='text-align:center; color:#555; margin-top:20px;'>No active bots running.</p>";
+                
                 uids.forEach(uid => {
                     const bot = data[uid];
-                    const timeDisplay = bot.total_time === "PERMANENT" ? "∞ NO LIMIT" : bot.elapsed + "s / " + bot.total_time + "s";
+                    const timeTxt = bot.total_time > 1000000 ? "NO LIMIT" : bot.elapsed + "s / " + bot.total_time + "s";
                     
-                    const row = `
-                        <tr>
-                            <td>${bot.name}</td>
-                            <td>
-                                <div class="bot-id">UID: ${bot.uid}</div>
-                                <div class="pass-text">PASS: ${bot.password}</div>
-                            </td>
-                            <td style="color:#00ff41;">RUNNING<br><span style="font-size:10px; color:white;">${timeDisplay}</span></td>
+                    html += `
+                    <div class="bot-item">
+                        <div class="bot-info">
+                            <h4>${bot.name} <span style="color:#6c5ce7; font-size:10px;">#${bot.uid}</span></h4>
+                            <p>PASS: ${bot.password} • ${timeTxt}</p>
+                        </div>
+                        <button class="stop-btn" onclick="stopBot('${bot.uid}')">STOP</button>
+                    </div>`;
+                });
+
+                document.getElementById('dashboardList').innerHTML = html;
+                document.getElementById('fullBotList').innerHTML = html;
+            });
+        }
+
+        // Auto Refresh
+        setInterval(fetchBots, 3000);
+        fetchBots();
+    </script>
+</body>
+</html>
                             <td><button class="stop-btn" onclick="stopBot('${bot.uid}')">STOP</button></td>
                         </tr>
                     `;
