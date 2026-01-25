@@ -7,11 +7,9 @@ import requests
 app = Flask(__name__)
 
 # --- CONFIGURATION ---
-# Yahan apna Render URL daal dena agar Auto-Wake chahiye
-SITE_URL = "https://ffbot-likho-3.onrender.com"  
+SITE_URL = "https://ffbot-likho-3.onrender.com"  # Apna URL yahan check kar lena
 
 # Data Storage
-# Structure: {'UID123': {'status': 'RUNNING', 'start_time': 12345, ...}}
 ALL_BOTS = {}
 
 # --- BOT LOGIC IMPORT ---
@@ -20,15 +18,16 @@ try:
     print("[SYSTEM] Bot Logic Loaded Successfully!")
 except Exception as e:
     print(f"[ERROR] Logic load failed: {e}")
-    def FF_CLIENT(u, p): pass
+    def FF_CLIENT(u, p): return None
 
 # --- AUTO WAKE SYSTEM ---
 def keep_alive():
     while True:
         try:
-            time.sleep(300) 
+            time.sleep(60) # Har 1 minute me ping karega (Aggressive Keep-Alive)
             if "YOUR_RENDER_URL" not in SITE_URL:
                 requests.get(SITE_URL)
+                print("[PING] Keeping Server Awake...")
         except: pass
 threading.Thread(target=keep_alive, daemon=True).start()
 
@@ -38,31 +37,39 @@ def background_worker(uid, duration_seconds):
     
     try:
         print(f"[BOT START] {uid}")
-        # Mark as RUNNING
         ALL_BOTS[uid]['status'] = 'RUNNING'
         ALL_BOTS[uid]['active'] = True
         
-        # ASLI ATTACK START
-        FF_CLIENT(uid, ALL_BOTS[uid]['password']) 
+        # --- MAJOR FIX: Connection ko variable me store kiya ---
+        # Pehle ye line thi: FF_CLIENT(uid, ALL_BOTS[uid]['password'])
+        # Ab ye hum connection ko 'client' variable me hold kar rahen hain
+        client_instance = FF_CLIENT(uid, ALL_BOTS[uid]['password'])
+        
+        # Connection object ko global dictionary me save kar lo taaki delete na ho
+        ALL_BOTS[uid]['client_ref'] = client_instance
+        # -----------------------------------------------------
         
         start_time = time.time()
         while time.time() - start_time < duration_seconds:
-            # Agar user ne stop button dabaya
             if ALL_BOTS[uid].get('stop_req'):
                 print(f"[BOT STOPPED] {uid} by User")
                 break
             
-            # Update Time
+            # Har 10 second me check karo ki kya bot zinda hai?
+            # (Agar bot_logic me koi 'is_connected' function ho to use kar sakte hain)
+            
             ALL_BOTS[uid]['elapsed'] = int(time.time() - start_time)
             time.sleep(1)
             
     except Exception as e:
         print(f"[ERROR] {uid}: {e}")
     finally:
-        # IMPORTANT: Delete nahi karenge, bas status 'OFF' karenge
         if uid in ALL_BOTS:
             ALL_BOTS[uid]['status'] = 'OFF'
             ALL_BOTS[uid]['active'] = False
+            # Memory clear karo
+            if 'client_ref' in ALL_BOTS[uid]:
+                del ALL_BOTS[uid]['client_ref']
             print(f"[BOT END] {uid} moved to OFF section")
 
 @app.route('/')
@@ -78,12 +85,9 @@ def run_bot():
     unit = request.form.get('unit')
 
     if not uid or not password: return jsonify({"status": "error", "message": "UID/Pass Missing!"})
-
-    # Agar bot pehle se list me hai aur RUNNING hai to error do
     if uid in ALL_BOTS and ALL_BOTS[uid]['active']:
         return jsonify({"status": "error", "message": "Ye Bot pehle se RUNNING hai!"})
 
-    # Time Calculation
     try:
         duration = int(raw_time)
         if unit == "min": duration *= 60
@@ -93,7 +97,6 @@ def run_bot():
     except:
         return jsonify({"status": "error", "message": "Invalid Time!"})
 
-    # Bot ko list me add/update karo
     ALL_BOTS[uid] = {
         'name': name if name else uid,
         'uid': uid,
@@ -117,11 +120,16 @@ def stop_bot():
     if uid in ALL_BOTS and ALL_BOTS[uid]['active']:
         ALL_BOTS[uid]['stop_req'] = True
         return jsonify({"status": "success", "message": "Stopping..."})
-    return jsonify({"status": "error", "message": "Bot already OFF or not found"})
+    return jsonify({"status": "error", "message": "Bot already OFF"})
 
 @app.route('/active_bots')
 def get_active_bots():
-    return jsonify(ALL_BOTS)
+    # Frontend ko bhejte waqt 'client_ref' object hata dete hain (kyunki wo JSON nahi ban sakta)
+    display_data = {}
+    for uid, data in ALL_BOTS.items():
+        # Copy data without the complex client object
+        display_data[uid] = {k:v for k,v in data.items() if k != 'client_ref'}
+    return jsonify(display_data)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
