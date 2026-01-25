@@ -7,7 +7,7 @@ import requests
 app = Flask(__name__)
 
 # --- CONFIGURATION ---
-SITE_URL = "https://ffbot-likho-3.onrender.com"  # Apna URL yahan check kar lena
+SITE_URL = "https://ffbot-likho-5.onrender.com"  # Apna URL yahan check kar lena
 
 # Data Storage
 ALL_BOTS = {}
